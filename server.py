@@ -1,6 +1,6 @@
 import json
 import os
-from flask import Flask, render_template, request, redirect, flash, url_for
+from flask import Flask, render_template, request, redirect, flash, url_for, abort
 
 
 def loadClubs(clubs_path="clubs.json"):
@@ -32,8 +32,18 @@ def index():
 
 @app.route("/showSummary", methods=["POST"])
 def showSummary():
-    club = [club for club in clubs if club["email"] == request.form["email"]][0]
-    return render_template("welcome.html", club=club, competitions=competitions)
+    try:
+        club = [club for club in clubs if club["email"] == request.form["email"]][0]
+    except IndexError:
+        abort(404)
+        flash("Your email does not exist in our database.")
+    clubPoint = int(club["points"])
+    return render_template(
+        "welcome.html",
+        club=club,
+        competitions=competitions,
+        clubPoint=clubPoint,
+    )
 
 
 @app.route("/book/<competition>/<club>")
@@ -67,3 +77,17 @@ def purchasePlaces():
 @app.route("/logout")
 def logout():
     return redirect(url_for("index"))
+
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(405)
+def not_ability_error(error):
+    return render_template("405.html"), 405
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
