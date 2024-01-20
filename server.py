@@ -109,6 +109,11 @@ def logout():
     return redirect(url_for("index"))
 
 
+@app.errorhandler(400)
+def not_ability_error(error):
+    return render_template("400.html"), 400
+
+
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template("404.html"), 404
