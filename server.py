@@ -68,10 +68,36 @@ def purchasePlaces():
         0
     ]
     club = [c for c in clubs if c["name"] == request.form["club"]][0]
+    clubPoint = int(club["points"])
     placesRequired = int(request.form["places"])
-    competition["numberOfPlaces"] = int(competition["numberOfPlaces"]) - placesRequired
-    flash("Great-booking complete!")
-    return render_template("welcome.html", club=club, competitions=competitions)
+    competitionPlaces = int(competition["numberOfPlaces"])
+    if placesRequired < 1:
+        flash("You can't reserve a spot below 1.")
+        abort(400)
+    elif (
+        placesRequired > clubPoint
+        or placesRequired > competitionPlaces
+        or placesRequired > 12
+    ):
+        flash("Not enough points.")
+        abort(400)
+    else:
+        clubPoint -= placesRequired
+        competitionPlaces = int(competitionPlaces) - placesRequired
+        competition["numberOfPlaces"] = str(competitionPlaces)
+        club["points"] = str(clubPoint)
+    if competitionPlaces == 0:
+        flash("Great-booking complete!")
+    else:
+        flash(
+            f"Competition has {competitionPlaces} places left and you have {clubPoint} points left."
+        )
+    return render_template(
+        "welcome.html",
+        club=club,
+        competitions=competitions,
+        clubPoint=clubPoint,
+    )
 
 
 # TODO: Add route for points display

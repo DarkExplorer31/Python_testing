@@ -1,7 +1,7 @@
 """Purchase places part unit tests"""
 import server
 from .test_authentication import client
-from server import loadCompetitions
+from server import loadCompetitions, loadClubs
 
 
 # loadCompetitions part
@@ -43,3 +43,107 @@ def test_should_return_clubs_at_start(client):
 def test_should_return_None_to_competitions():
     competitions = loadCompetitions("not_exist.json")
     assert competitions is None
+
+
+# purchasePlaces part
+def test_should_reserve_a_place_in_flash(client):
+    clubs = loadClubs()
+    competitions = loadCompetitions()
+    request = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competitions[0]["name"],
+            "club": clubs[0]["name"],
+            "places": "2",
+        },
+    )
+    data = request.data.decode()
+    assert request.status_code == 200
+    assert (
+        data.find(
+            "<li>Competition has 23 places left and you have 11 points left.</li>"
+        )
+        != -1
+    )
+
+
+def test_should_return_400_with_under_one_flash(client):
+    clubs = loadClubs()
+    competitions = loadCompetitions()
+    request = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competitions[0]["name"],
+            "club": clubs[0]["name"],
+            "places": "-2",
+        },
+    )
+    data = request.data.decode()
+    assert request.status_code == 400
+    assert data.find("You can't reserve a spot below 1.")
+
+
+def test_should_return_400_with_not_enough_points_flash(client):
+    clubs = loadClubs()
+    competitions = loadCompetitions()
+    request = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competitions[0]["name"],
+            "club": clubs[0]["name"],
+            "places": "56",
+        },
+    )
+    data = request.data.decode()
+    assert request.status_code == 400
+    assert data.find("Not enough points.")
+
+
+def test_should_return_current_number_of_places_from_competition(client):
+    clubs = loadClubs()
+    competitions = loadCompetitions()
+    request = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competitions[0]["name"],
+            "club": clubs[0]["name"],
+            "places": "2",
+        },
+    )
+    request2 = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competitions[0]["name"],
+            "club": clubs[0]["name"],
+            "places": "2",
+        },
+    )
+    data = request2.data.decode()
+    assert request.status_code == 200
+    assert request2.status_code == 200
+    assert data.find("Number of Places: 21")
+
+
+def test_should_return_current_number_of_points(client):
+    clubs = loadClubs()
+    competitions = loadCompetitions()
+    request = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competitions[0]["name"],
+            "club": clubs[0]["name"],
+            "places": "2",
+        },
+    )
+    request2 = client.post(
+        "/purchasePlaces",
+        data={
+            "competition": competitions[0]["name"],
+            "club": clubs[0]["name"],
+            "places": "2",
+        },
+    )
+    data = request2.data.decode()
+    assert request.status_code == 200
+    assert request2.status_code == 200
+    assert data.find("Points available: 3") != -1
