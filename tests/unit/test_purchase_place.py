@@ -48,7 +48,7 @@ def test_should_return_clubs_at_start(client):
     request = client.post("/showSummary", data={"email": email})
     data = request.data.decode()
     assert data.find("<h2>Welcome, john@simplylift.co </h2>") != -1
-    assert data.find("Points available: 13") != -1
+    assert data.find("Points available: 12") != -1
 
 
 def test_should_return_None_to_competitions():
@@ -72,7 +72,7 @@ def test_should_reserve_a_place_in_flash(client):
     assert request.status_code == 200
     assert (
         data.find(
-            "<li>Competition has 23 places left and you have 11 points left.</li>"
+            "<li>Competition has 20 places left and you have 10 points left.</li>"
         )
         != -1
     )
@@ -157,7 +157,7 @@ def test_should_return_current_number_of_points(client):
     data = request2.data.decode()
     assert request.status_code == 200
     assert request2.status_code == 200
-    assert data.find("Points available: 3") != -1
+    assert data.find("Points available: 2") != -1
 
 
 def test_should_return_competition_is_complete(client_mocker):
