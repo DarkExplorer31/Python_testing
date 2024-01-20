@@ -1,7 +1,18 @@
 """Purchase places part unit tests"""
+import pytest
+
 import server
 from .test_authentication import client
 from server import loadCompetitions, loadClubs
+
+
+@pytest.fixture
+def client_mocker(client, mocker):
+    mocker.patch.object(
+        server, "competitions", [{"name": "ExampleCompetition", "numberOfPlaces": 5}]
+    )
+    mocker.patch.object(server, "clubs", [{"name": "ExampleClub", "points": 20}])
+    yield client
 
 
 # loadCompetitions part
@@ -147,3 +158,14 @@ def test_should_return_current_number_of_points(client):
     assert request.status_code == 200
     assert request2.status_code == 200
     assert data.find("Points available: 3") != -1
+
+
+def test_should_return_competition_is_complete(client_mocker):
+    data = {
+        "competition": "ExampleCompetition",
+        "club": "ExampleClub",
+        "places": 5,
+    }
+    response = client_mocker.post("/purchasePlaces", data=data)
+    assert response.status_code == 200
+    assert b"Great-booking complete!" in response.data
