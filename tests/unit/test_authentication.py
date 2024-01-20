@@ -68,7 +68,7 @@ def test_show_summary_should_return_not_found_error(client):
     data = request.data.decode()
     assert request.status_code == 404
     assert data.find("<h1>Error 404</h1>") != -1
-    assert data.find("<li>our email does not exist in our database.</li>")
+    assert data.find("Your email does not exist in our database.")
 
 
 def test_show_summary_without_email_should_return_405(client):

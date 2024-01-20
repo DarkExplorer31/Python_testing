@@ -38,8 +38,8 @@ def showSummary():
     try:
         club = [club for club in clubs if club["email"] == request.form["email"]][0]
     except IndexError:
-        abort(404)
         flash("Your email does not exist in our database.")
+        abort(404)
     clubPoint = int(club["points"])
     return render_template(
         "welcome.html",
