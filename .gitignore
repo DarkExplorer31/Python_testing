@@ -4,3 +4,5 @@ lib
 .Python
 /env
 __pycache__
+.coveragerc
+.coverage
