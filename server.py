@@ -12,10 +12,13 @@ def loadClubs(clubs_path="clubs.json"):
         return None
 
 
-def loadCompetitions():
-    with open("competitions.json") as comps:
-        listOfCompetitions = json.load(comps)["competitions"]
-        return listOfCompetitions
+def loadCompetitions(listOfCompetitions_path="competitions.json"):
+    if os.path.exists(listOfCompetitions_path):
+        with open(listOfCompetitions_path) as comps:
+            listOfCompetitions = json.load(comps)["competitions"]
+            return listOfCompetitions
+    else:
+        return None
 
 
 app = Flask(__name__)
