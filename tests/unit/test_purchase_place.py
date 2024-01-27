@@ -3,7 +3,7 @@ import pytest
 
 import server
 from .test_authentication import client
-from server import loadCompetitions, loadClubs
+from server import loadCompetitions, loadClubs, initializePlacesBuying
 
 
 @pytest.fixture
@@ -12,6 +12,21 @@ def client_mocker(client, mocker):
         server, "competitions", [{"name": "ExampleCompetition", "numberOfPlaces": 5}]
     )
     mocker.patch.object(server, "clubs", [{"name": "ExampleClub", "points": 20}])
+    mocker.patch.object(
+        server, "places_buy_list", {"ExampleClub": [{"ExampleCompetition": 0}]}
+    )
+    yield client
+
+
+@pytest.fixture
+def client_mocker2(client, mocker):
+    mocker.patch.object(
+        server, "competitions", [{"name": "ExampleCompetition", "numberOfPlaces": 45}]
+    )
+    mocker.patch.object(server, "clubs", [{"name": "ExampleClub", "points": 20}])
+    mocker.patch.object(
+        server, "places_buy_list", {"ExampleClub": [{"ExampleCompetition": 11}]}
+    )
     yield client
 
 
@@ -54,6 +69,31 @@ def test_should_return_clubs_at_start(client):
 def test_should_return_None_to_competitions():
     competitions = loadCompetitions("not_exist.json")
     assert competitions is None
+
+
+# initializePlacesBuying part testing
+def test_should_return_empty_history_of_places_buying():
+    history = initializePlacesBuying()
+    expected_value = {
+        "Simply Lift": [{"Spring Festival": 0}, {"Fall Classic": 0}],
+        "Iron Temple": [{"Spring Festival": 0}, {"Fall Classic": 0}],
+        "She Lifts": [{"Spring Festival": 0}, {"Fall Classic": 0}],
+    }
+    assert history == expected_value
+
+
+def test_should_return_club_have_used_too_many_points(client_mocker2):
+    request = client_mocker2.post(
+        "/purchasePlaces",
+        data={
+            "competition": "ExampleCompetition",
+            "club": "ExampleClub",
+            "places": "2",
+        },
+    )
+    data = request.data.decode()
+    assert request.status_code == 400
+    assert data.find("You have used too many points in ExampleCompetition.") != -1
 
 
 # purchasePlaces part

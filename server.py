@@ -28,6 +28,19 @@ competitions = loadCompetitions()
 clubs = loadClubs()
 
 
+def initializePlacesBuying():
+    placesBuy = {}
+    for club in clubs:
+        pointsByCompetitions = [
+            {competition["name"]: 0} for competition in competitions
+        ]
+        placesBuy[club["name"]] = pointsByCompetitions
+    return placesBuy
+
+
+places_buy_list = initializePlacesBuying()
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -73,7 +86,7 @@ def purchasePlaces():
     placesRequired = int(request.form["places"])
     competitionPlaces = int(competition["numberOfPlaces"])
     if placesRequired < 1:
-        flash("You can't reserve a spot below 1.")
+        flash("You can't reserve a place below 1.")
         abort(400)
     elif (
         placesRequired > clubPoint
@@ -87,6 +100,13 @@ def purchasePlaces():
         competitionPlaces = int(competitionPlaces) - placesRequired
         competition["numberOfPlaces"] = str(competitionPlaces)
         club["points"] = str(clubPoint)
+        clubTotalPoint = places_buy_list[club["name"]]
+        for competitionName in clubTotalPoint:
+            if competition["name"] in competitionName:
+                competitionName[competition["name"]] += placesRequired
+                if competitionName[competition["name"]] > 12:
+                    flash(f"You have used too many points in {competition['name']}.")
+                    abort(400)
     if competitionPlaces == 0:
         flash("Great-booking complete!")
     else:
